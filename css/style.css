@@ -1,0 +1,313 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+}
+
+#ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    /* Ensure UI is on top of 3D canvas */
+    /* Let clicks pass through to canvas if needed */
+}
+
+#hud {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: rgba(255, 255, 255, 0.9);
+    pointer-events: auto;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.5rem;
+
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+#target-box {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border: 2px solid #0f0;
+    box-shadow: 0 0 10px #0f0, inset 0 0 10px #0f0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    z-index: 5;
+}
+
+#target-box::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border: 2px solid transparent;
+    border-top: 2px solid #0f0;
+    border-bottom: 2px solid #0f0;
+}
+
+#target-box::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border: 2px solid transparent;
+    border-left: 2px solid #0f0;
+    border-right: 2px solid #0f0;
+}
+
+p {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin: 5px 0 15px 0;
+}
+
+#debug-info {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #0f0;
+}
+
+#interaction-prompt {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    color: #fff;
+    text-shadow: 0 0 10px #0ff;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border: 1px solid #0ff;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.blink {
+    animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+#cinematic-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Gradient: Transparent center, thicker white fog at edges */
+    background: radial-gradient(circle, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.9) 100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 2s ease-in-out;
+    z-index: 20;
+}
+
+#cinematic-overlay.active {
+    opacity: 0.8;
+    /* We can flash white for hyperspace feel or fog */
+}
+
+#spectator-mode {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: cyan;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px cyan;
+    border-top: 1px solid cyan;
+    border-bottom: 1px solid cyan;
+    padding: 5px 20px;
+    display: none;
+    background: rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    width: auto;
+    text-align: center;
+}
+
+
+.visible {
+    opacity: 1 !important;
+}
+
+#warning-msg {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    /* Allow auto width for padding */
+    padding: 12px 34px;
+
+    background: rgba(40, 0, 0, 0.4);
+    /* Very transparent background */
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    /* Transparent border */
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4), inset 0 0 10px rgba(255, 0, 0, 0.3);
+
+    font-family: 'Consolas', monospace;
+    font-size: 1.7rem;
+    letter-spacing: 4px;
+    color: rgba(255, 0, 0, 0.9);
+    /* Slightly transparent text */
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    text-align: center;
+    clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    /* Sci-fi angle */
+}
+
+#warning-msg.active {
+    opacity: 1;
+    animation: flash 0.5s infinite alternate;
+}
+
+@keyframes flash {
+    0% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+
+    100% {
+        opacity: 0.4;
+        transform: translate(-50%, -50%) scale(1.05);
+        /* Pulse size */
+        text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    }
+}
+
+#css-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* Allow clicks to pass through empty areas */
+}
+
+/* Enable pointer events on the actual 3D rendering divs */
+#css-container>div {
+    pointer-events: auto;
+}
+
+.planet-screen {
+    /* Base styles are set in JS, but we can enhance here */
+    overflow-y: auto;
+    pointer-events: auto;
+    /* Vital for interacting with buttons/links */
+    backface-visibility: hidden;
+}
+
+.planet-screen h2 {
+    margin-top: 0;
+    color: cyan;
+    border-bottom: 1px solid cyan;
+    padding-bottom: 10px;
+}
+
+.planet-screen a {
+    color: yellow;
+    text-decoration: none;
+}
+
+.planet-screen a:hover {
+    text-decoration: underline;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: #0f0;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 1.2rem;
+    transition: opacity 1s ease-out;
+}
+
+#loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.terminal-loader .text {
+    opacity: 0;
+    margin: 5px 0;
+    animation: typeOn 0.1s forwards;
+    text-shadow: 0 0 5px #0f0;
+}
+
+/* Staggered animations */
+.terminal-loader .text:nth-child(1) {
+    animation-delay: 0.5s;
+}
+
+.terminal-loader .text:nth-child(2) {
+    animation-delay: 1.5s;
+}
+
+.terminal-loader .text:nth-child(3) {
+    animation-delay: 2.5s;
+}
+
+.terminal-loader .text:nth-child(4) {
+    animation-delay: 3.0s;
+}
+
+.terminal-loader .text:nth-child(5) {
+    animation-delay: 3.8s;
+    color: cyan;
+    text-shadow: 0 0 10px cyan;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-top: 20px;
+}
+
+@keyframes typeOn {
+    to {
+        opacity: 1;
+    }
+}
