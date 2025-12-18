@@ -38,10 +38,22 @@
         </div>
         <div id="warning-msg">⚠ MISSILE INCOMING ⚠</div>
         <div id="interaction-prompt"></div>
+        <div id="landing-prompt">PRESS SPACE TO LAND</div>
         <div id="spectator-mode">Viewing Terminal</div>
 
         <div id="target-box"></div>
         <div id="cinematic-overlay"></div>
+
+        <!-- Mobile UI -->
+        <canvas id="touch-canvas"></canvas>
+        <div id="touch-controls-ui">
+            <div id="vertical-controls">
+                <button id="btn-up" class="touch-btn sm">▲</button>
+                <button id="btn-down" class="touch-btn sm">▼</button>
+            </div>
+            <button id="btn-warp" class="touch-btn">WARP</button>
+        </div>
+
     </div>
     <script type="module" src="./js/main.js"></script>
 </body>

@@ -11,6 +11,7 @@ import { UFO } from './ufo.js';
 import { Projectile } from './projectile.js';
 import { Explosion } from './explosion.js';
 import { UI } from './ui.js';
+import { TouchControls } from './touch-controls.js'; // [NEW]
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -79,8 +80,21 @@ cssContainer.style.top = '0';
 cssContainer.style.pointerEvents = 'none'; // Container ignores clicks, children (screens) accept them
 cssContainer.appendChild(cssRenderer.domElement);
 
+// Input Handling
+const keys = {};
+const touchControls = new TouchControls(); // [NEW]
+
+document.addEventListener('keydown', (e) => {
+    keys[e.key] = true;
+    keys[e.code] = true; // Support both (Code for W/A/S/D independence of layout)
+});
+document.addEventListener('keyup', (e) => {
+    keys[e.key] = false;
+    keys[e.code] = false;
+});
+
 // Game Objects
-const spaceship = new Spaceship(scene, camera);
+const spaceship = new Spaceship(scene, camera, keys, touchControls); // Pass touchControls
 const environment = new Environment(scene);
 const starfield = new Starfield(scene);
 const ui = new UI();
@@ -194,6 +208,7 @@ function animate() {
 
     // Update Spaceship
     spaceship.update();
+    touchControls.update(); // [NEW] Update Touch Visuals
 
     // Update Spaceship
     spaceship.update();
@@ -389,14 +404,13 @@ function animate() {
     }
 
     // Render
-    // Render
     composer.render();
-    cssRenderer.render(scene, camera);
     cssRenderer.render(scene, camera);
 }
 
 // Add Space key for landing
 document.addEventListener('keydown', (e) => {
+    keys[e.key] = true;
     if (e.code === 'Space' && spaceship.state === 'FLYING') {
         // Find nearest planet
         let nearest = null;
@@ -411,7 +425,10 @@ document.addEventListener('keydown', (e) => {
             }
         });
 
-        if (nearest) {
+        // Logic: Key OR Touch Button
+        const isLandingInput = keys[' '] || touchControls.actions.land;
+
+        if (nearest && isLandingInput) {
             spaceship.land(nearest);
         }
     }

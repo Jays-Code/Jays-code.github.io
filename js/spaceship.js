@@ -3,10 +3,13 @@ import { Shield } from './shield.js';
 
 
 export class Spaceship {
-    constructor(scene, camera) {
+    constructor(scene, camera, keys = {}, touchControls = null) {
         this.scene = scene;
         this.camera = camera;
+        this.keys = keys; // [NEW] Keep ref
+        this.touchControls = touchControls; // [NEW] Keep ref
         this.mesh = null;
+
         this.velocity = new THREE.Vector3(); // Local velocity
         this.input = { forward: false, backward: false, left: false, right: false, up: false, down: false, turnLeft: false, turnRight: false, fire: false };
         this.maxSpeed = 1.2;
@@ -42,8 +45,11 @@ export class Spaceship {
         this.windowHalfY = window.innerHeight / 2;
 
         this.initModel();
-        this.initControls();
+        this.bindMouseEvents(); // [RESTORED]
     }
+
+
+
 
     initModel() {
         this.mesh = new THREE.Group();
@@ -160,41 +166,89 @@ export class Spaceship {
     }
 
 
-    initControls() {
-        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
-        document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
+    onFire(pos, dir) {
+        // Placeholder
+    }
+
+    /* 
+       Keyboard handlers moved to Main or abstracted. 
+       We now poll this.keys and this.touchControls in update() 
+    */
+    handleInput() {
+        // Reset boolean inputs for this frame (simulating poll)
+        this.input.forward = this.keys['w'] || this.keys['W'];
+        this.input.backward = this.keys['s'] || this.keys['S'];
+        this.input.turnLeft = this.keys['a'] || this.keys['A'];
+        this.input.turnRight = this.keys['d'] || this.keys['D'];
+
+        // Strafe
+        this.input.left = this.keys['q'] || this.keys['Q'] || this.keys['ArrowLeft'];
+        this.input.right = this.keys['e'] || this.keys['E'] || this.keys['ArrowRight'];
+        this.input.up = this.keys['r'] || this.keys['R'] || this.keys['ArrowUp']; // Up
+        this.input.down = this.keys['Control'] || this.keys['f'] || this.keys['F'] || this.keys['ArrowDown']; // Down
+
+
+
+
+        this.input.fire = this.keys[' '] || (this.touchControls && this.touchControls.actions.fire);
+        this.input.warp = this.keys['Shift'] || (this.touchControls && this.touchControls.actions.warp);
+
+
+        // Mobile Overrides
+        if (this.touchControls) {
+            const tm = this.touchControls.move;
+            // Joystick Y is inverted (-1 is up)
+            if (tm.y < -0.2) this.input.forward = true;
+            if (tm.y > 0.2) this.input.backward = true;
+            // Joystick X -> Turn (Yaw)
+            if (tm.x < -0.2) this.input.turnLeft = true;
+            if (tm.x > 0.2) this.input.turnRight = true;
+
+
+            // Touch Look
+            const tl = this.touchControls.look;
+            this.mouseX -= tl.x * 500; // sensitivity adj
+            this.mouseY -= tl.y * 500;
+
+            // Buttons Override
+            if (this.touchControls.actions.up) this.input.up = true;
+            if (this.touchControls.actions.down) this.input.down = true;
+        }
+
+    }
+
+
+    bindMouseEvents() {
         document.addEventListener('mousemove', (e) => this.onMouseMove(e), false);
-        document.addEventListener('mousemove', (e) => this.onMouseMove(e), false);
-        document.addEventListener('mousedown', (e) => this.onMouseDown(e), false); // Changed to handler
+        document.addEventListener('mousedown', (e) => this.onMouseDown(e), false);
         document.addEventListener('mouseup', () => { this.input.fire = false; }, false);
 
-        // Pointer Lock Change Listener
         document.addEventListener('pointerlockchange', () => {
             if (document.pointerLockElement !== document.body) {
-                // Unlocked
-                this.input.fire = false; // Stop firing if unlocked
+                this.input.fire = false;
             }
-        });
-
-
-        window.addEventListener('resize', () => {
-            this.windowHalfX = window.innerWidth / 2;
-            this.windowHalfY = window.innerHeight / 2;
         });
     }
 
     onKeyDown(event) {
+
         switch (event.code) {
             case 'KeyW': this.input.forward = true; break;
             case 'KeyS': this.input.backward = true; break;
             case 'KeyA': this.input.turnLeft = true; break;
             case 'KeyD': this.input.turnRight = true; break;
+            case 'KeyQ': this.input.left = true; break;
+            case 'KeyE': this.input.right = true; break;
+            case 'KeyR': this.input.up = true; break;
+            case 'KeyF': this.input.down = true; break;
+
             case 'ArrowUp': this.input.up = true; break;
             case 'ArrowDown': this.input.down = true; break;
             case 'ArrowLeft': this.input.left = true; break;
-            case 'ArrowLeft': this.input.left = true; break;
             case 'ArrowRight': this.input.right = true; break;
+
             case 'Space': this.input.fire = true; break;
+
             case 'ShiftLeft': this.input.warp = true; break;
             case 'ShiftRight': this.input.warp = true; break;
         }
@@ -206,12 +260,18 @@ export class Spaceship {
             case 'KeyS': this.input.backward = false; break;
             case 'KeyA': this.input.turnLeft = false; break;
             case 'KeyD': this.input.turnRight = false; break;
+            case 'KeyQ': this.input.left = false; break;
+            case 'KeyE': this.input.right = false; break;
+            case 'KeyR': this.input.up = false; break;
+            case 'KeyF': this.input.down = false; break;
+
             case 'ArrowUp': this.input.up = false; break;
             case 'ArrowDown': this.input.down = false; break;
             case 'ArrowLeft': this.input.left = false; break;
-            case 'ArrowLeft': this.input.left = false; break;
             case 'ArrowRight': this.input.right = false; break;
+
             case 'Space': this.input.fire = false; break;
+
             case 'ShiftLeft': this.input.warp = false; break;
             case 'ShiftRight': this.input.warp = false; break;
         }
@@ -301,7 +361,11 @@ export class Spaceship {
     update() {
         if (!this.mesh) return;
 
+        // Poll Inputs
+        this.handleInput();
+
         // Update Shield
+
         if (this.shield) {
             this.shield.update(performance.now(), 0.016);
         }
@@ -421,7 +485,8 @@ export class Spaceship {
         // Pitch (Up/Down) - Remains absolute (target) for stability
         // Add "Swoop" - Pitch up/down based on vertical speed
         const pitchFromSpeed = this.velocity.y * 0.5;
-        this.mesh.rotation.x += (targetRotationX - pitchFromSpeed - this.mesh.rotation.x) * 0.1;
+        this.mesh.rotation.x += (targetRotationX + pitchFromSpeed - this.mesh.rotation.x) * 0.1;
+
 
         // Warp Drive Logic
         let currentMaxSpeed = this.maxSpeed;
@@ -459,8 +524,7 @@ export class Spaceship {
         this.velocity.add(this.impactVelocity);
         this.impactVelocity.multiplyScalar(0.9); // Quick decay
 
-        this.velocity.add(this.impactVelocity);
-        this.impactVelocity.multiplyScalar(0.9); // Quick decay
+
 
         this.velocity.clampLength(0, currentMaxSpeed);
 
@@ -484,6 +548,7 @@ export class Spaceship {
             this.fire();
         }
     }
+
 
     fire() {
         if (!this.canFire) return;
