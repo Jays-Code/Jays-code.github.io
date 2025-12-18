@@ -69,9 +69,14 @@ export class TouchControls {
             landPrompt.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 this.actions.land = true;
-                // Auto-reset land action after a frame because it's a trigger
                 setTimeout(() => this.actions.land = false, 100);
             });
+            landPrompt.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.actions.land = true;
+                setTimeout(() => this.actions.land = false, 100);
+            });
+
         }
     }
 

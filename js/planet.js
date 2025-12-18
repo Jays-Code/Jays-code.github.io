@@ -50,9 +50,15 @@ export class Planet {
         // We'll use this for the gravity pull target
 
         // 3. Create the CSS3D Screen (The "Hologram")
+        // Create a Container for correct centering
+        const container = document.createElement('div');
+        container.style.width = '0px';
+        container.style.height = '0px';
+        // container.style.background = 'rgba(255, 0, 0, 0.2)'; // Debug
+
         const div = document.createElement('div');
         div.className = 'planet-screen';
-        div.style.width = '400px';
+        div.style.width = '400px'; // Set actual size here
         div.style.height = '300px';
         div.style.backgroundColor = 'rgba(0, 20, 40, 0.8)';
         div.style.border = '2px solid cyan';
@@ -60,6 +66,14 @@ export class Planet {
         div.style.color = 'white';
         div.style.padding = '20px';
         div.style.fontFamily = 'monospace';
+        div.style.boxSizing = 'border-box';
+
+        // Center the content relative to the 0x0 container (Anchor Point)
+        div.style.position = 'absolute';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.transform = 'translate(-50%, -50%)';
+
         div.innerHTML = this.config.content;
 
         // Add an "Exit" button to the DOM element
@@ -76,7 +90,9 @@ export class Planet {
         });
         div.appendChild(exitBtn);
 
-        this.screen = new CSS3DObject(div);
+        container.appendChild(div);
+
+        this.screen = new CSS3DObject(container);
         this.screen.position.set(0, this.config.size + 3, 0); // Float above pad
         this.screen.scale.set(0.05, 0.05, 0.05); // Scale down to match Three.js units
         this.mesh.add(this.screen);

@@ -356,9 +356,12 @@ export class Spaceship {
         // Push ship away slightly
         this.velocity.z = 0.5;
         this.mesh.translateZ(5);
+
+        document.body.classList.remove('landed');
     }
 
     update() {
+
         if (!this.mesh) return;
 
         // Poll Inputs
@@ -440,14 +443,17 @@ export class Spaceship {
             const spectator = document.getElementById('spectator-mode');
             if (spectator) spectator.style.display = 'block';
 
-            // Ensure cursor is unlocked for menu interaction
             if (document.pointerLockElement === document.body) {
                 document.exitPointerLock();
             }
+
+            // Enable interaction with 3D UI
+            document.body.classList.add('landed');
         }
     }
 
     updateFlying() {
+
         // Rotation Rates
         // Mouse X controls Yaw Rate (Continuous turning)
         // Add minimal noise if trauma > 0

@@ -152,8 +152,40 @@ p {
     text-align: center;
 }
 
+#landing-prompt {
+    position: absolute;
+    bottom: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-family: 'Consolas', monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px #0ff;
+
+    padding: 15px 30px;
+    background: rgba(0, 50, 50, 0.8);
+    border: 2px solid #0ff;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+#landing-prompt.visible {
+    opacity: 1;
+    pointer-events: auto;
+    /* Enable clicks */
+    animation: blinker 1.5s infinite alternate;
+}
 
 .visible {
+
     opacity: 1 !important;
 }
 
@@ -224,7 +256,31 @@ p {
     pointer-events: auto;
 }
 
+
+/* Ensure CSS3D is interactable */
+#css-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    /* Keep z-index 1 to ensure above background, but rely on pointer-events: none for pass-through */
+}
+
+/* Allow clicking through the touch canvas when interacting with planet UI */
+body.landed #touch-canvas {
+    pointer-events: none;
+    /* Removed display: none as requested */
+}
+
+canvas {
+    pointer-events: none;
+}
+
 .planet-screen {
+
     /* Base styles are set in JS, but we can enhance here */
     overflow-y: auto;
     pointer-events: auto;
@@ -276,7 +332,13 @@ p {
     touch-action: none;
 }
 
+/* Allow clicking through the canvas when interacting with planet UI */
+body.landed #touch-canvas {
+    pointer-events: none;
+}
+
 #touch-controls-ui {
+
     position: absolute;
     bottom: 20px;
     right: 20px;

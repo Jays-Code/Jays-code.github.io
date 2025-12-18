@@ -366,41 +366,46 @@ function animate() {
         let nearest = null;
         let minDist = Infinity;
 
+        let landingCandidate = null;
+
         planets.forEach(p => {
             const dist = spaceship.getPosition().distanceTo(p.mesh.position);
 
             // Gravity Pull
             if (dist < p.config.size + 40) {
-                // Pull force
                 const pull = p.mesh.position.clone().sub(spaceship.getPosition()).normalize().multiplyScalar(0.01);
                 spaceship.velocity.add(pull);
 
-                if (dist < minDist) {
-                    minDist = dist;
-                    nearest = p;
+                if (dist < p.config.size + 20) { // Closer threshold for landing
+                    if (dist < minDist) {
+                        minDist = dist;
+                        landingCandidate = p;
+                    }
                 }
             }
         });
 
-        // Trigger Landing if close enough and stable? 
-        // Or just automatic if very close
-        if (nearest && minDist < nearest.config.size + 15) {
-            ui.promptEl.innerText = `Press SPACE to Land on ${nearest.config.name}`;
-            ui.promptEl.classList.add('visible');
-            ui.promptEl.classList.add('blink');
+        const prompt = document.getElementById('landing-prompt');
+        // Handle UI and Interaction
+        if (landingCandidate) {
+            if (prompt) {
+                prompt.innerText = `PRESS SPACE TO LAND ON ${landingCandidate.config.name.toUpperCase()}`;
+                prompt.classList.add('visible');
+            }
 
+            // TRIGGER LANDING (Space or Touch)
+            if (keys[' '] || (touchControls && touchControls.actions.land)) {
+                spaceship.land(landingCandidate);
+                if (prompt) prompt.classList.remove('visible');
+            }
 
-            // Check input for landing (hacky access to input, ideally event based)
-            // We'll add a temporary listener or check a flag
-            // Let's check a global or spaceship flag
-            // spaceship.input.land? 
         } else {
-            ui.promptEl.classList.remove('visible');
-            ui.promptEl.classList.remove('blink');
+            if (prompt) prompt.classList.remove('visible');
         }
+
     } else {
-        ui.promptEl.classList.remove('visible');
-        ui.promptEl.classList.remove('blink');
+        const prompt = document.getElementById('landing-prompt');
+        if (prompt) prompt.classList.remove('visible');
     }
 
     // Render
@@ -408,30 +413,28 @@ function animate() {
     cssRenderer.render(scene, camera);
 }
 
-// Add Space key for landing
+// Add Space key for landing state tracking
 document.addEventListener('keydown', (e) => {
     keys[e.key] = true;
-    if (e.code === 'Space' && spaceship.state === 'FLYING') {
-        // Find nearest planet
-        let nearest = null;
-        let minDist = Infinity;
-        planets.forEach(p => {
-            const dist = spaceship.getPosition().distanceTo(p.mesh.position);
-            if (dist < p.config.size + 20) {
-                if (dist < minDist) {
-                    minDist = dist;
-                    nearest = p;
-                }
-            }
-        });
-
-        // Logic: Key OR Touch Button
-        const isLandingInput = keys[' '] || touchControls.actions.land;
-
-        if (nearest && isLandingInput) {
-            spaceship.land(nearest);
-        }
-    }
+    keys[e.code] = true;
 });
 
+
+// Handle Resize
+window.addEventListener('resize', () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height);
+    cssRenderer.setSize(width, height);
+    composer.setSize(width, height);
+
+    if (touchControls) touchControls.resize();
+});
+
+
 animate();
+
