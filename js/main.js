@@ -4,6 +4,7 @@ import { Spaceship } from './spaceship.js';
 import { Environment } from './environment.js';
 import { Planet } from './planet.js';
 import { Starfield } from './starfield.js';
+import { NebulaField } from './nebula.js';
 
 import { Asteroid } from './asteroid.js';
 
@@ -97,6 +98,7 @@ document.addEventListener('keyup', (e) => {
 const spaceship = new Spaceship(scene, camera, keys, touchControls); // Pass touchControls
 const environment = new Environment(scene);
 const starfield = new Starfield(scene);
+const nebulaField = new NebulaField(scene); // [NEW] Nebulas
 const ui = new UI();
 
 
@@ -241,7 +243,9 @@ function animate() {
     // Starfield expects speed factor.
     // Let's pass normalized speed or raw?
     // Ship stores velocity.
+    // Ship stores velocity.
     starfield.update(time, spaceship.getSpeed());
+    nebulaField.update(time); // [NEW] Update Nebulas
 
 
     // Update & Clean Projectiles
