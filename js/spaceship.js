@@ -15,7 +15,7 @@ export class Spaceship {
         this.maxSpeed = 1.2;
         this.acceleration = 0.05;
         this.decay = 0.95;
-        this.rotationSpeed = 0.002;
+        this.rotationSpeed = 0.00175;
         this.yawOffset = 0;
 
         // Impact / Shake
@@ -318,6 +318,10 @@ export class Spaceship {
         if (this.state !== 'FLYING') return;
         this.state = 'LANDING';
         this.landTarget = planet;
+
+        // Activate Planet Projection
+        if (this.landTarget.activate) this.landTarget.activate();
+
         this.velocity.set(0, 0, 0); // Kill speed
 
         // Capture start state
@@ -340,6 +344,12 @@ export class Spaceship {
 
     takeOff() {
         if (this.state !== 'LANDED') return;
+
+        // Deactivate Planet Projection
+        if (this.landTarget && this.landTarget.deactivate) {
+            this.landTarget.deactivate();
+        }
+
         this.state = 'FLYING';
         this.landTarget = null;
 
@@ -367,8 +377,16 @@ export class Spaceship {
         // Poll Inputs
         this.handleInput();
 
-        // Update Shield
+        // Handle Spacebar Takeoff
+        if (this.state === 'LANDED' && this.input.fire) {
+            this.takeOff();
+            // Prevent immediate weapon discharge
+            this.canFire = false;
+            setTimeout(() => { this.canFire = true; }, 500);
+            return;
+        }
 
+        // Update Shield
         if (this.shield) {
             this.shield.update(performance.now(), 0.016);
         }
@@ -384,10 +402,10 @@ export class Spaceship {
         if (!this.landTarget) return;
 
         // 1. Calculate Target (World Space)
-        // Position: slightly above landing pad
-        const localTargetPos = new THREE.Vector3(0, this.landTarget.config.size + 2, 25);
-        // LookAt: screen center
-        const localLookAtPos = new THREE.Vector3(0, this.landTarget.config.size + 3, 0);
+        // Position: Further back to see the Sky Projection comfortably
+        const localTargetPos = new THREE.Vector3(0, this.landTarget.config.size + 5, 70);
+        // LookAt: Sky Screen height (Size + 50)
+        const localLookAtPos = new THREE.Vector3(0, this.landTarget.config.size + 50, 0);
 
         this.landTarget.mesh.updateMatrixWorld();
         const worldTargetPos = localTargetPos.applyMatrix4(this.landTarget.mesh.matrixWorld);
@@ -465,13 +483,13 @@ export class Spaceship {
             this.trauma = Math.max(0, this.trauma - 0.02); // Decay
         }
 
-        const mouseYawRate = (-this.mouseX * 0.00005) + shakeX;
+        const mouseYawRate = (-this.mouseX * 0.0000375) + shakeX;
         const targetRotationX = (-this.mouseY * this.rotationSpeed) + shakeY;
 
 
         // Keyboard Turning (Yaw Velocity)
-        const turnAccel = 0.001;
-        const maxTurnSpeed = 0.025;
+        const turnAccel = 0.00075;
+        const maxTurnSpeed = 0.01875;
 
         if (this.input.turnLeft) {
             this.yawOffset += turnAccel;

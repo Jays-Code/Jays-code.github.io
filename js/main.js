@@ -155,7 +155,7 @@ const planetConfigs = [
         pos: [0, -20, -100],
         size: 15,
         texture: 'img/planets/2k_mars.jpg',
-        content: '<h2>Resume</h2><p>Experience: Senior Dev...</p><p><a href="#">Download PDF</a></p>' // Placeholder
+        content: '<h2>Resume</h2><p>Experience:[Big 4]</p><p><a href="#">Download PDF</a></p>' // Placeholder
     },
     {
         name: 'Projects',
@@ -169,7 +169,10 @@ const planetConfigs = [
         pos: [120, -40, -160],
         size: 18,
         texture: 'img/planets/2k_neptune.jpg',
-        content: '<h2>About Me</h2><p>I love space and code!</p>'
+        content: '<h1>About Me</h1><p>IT operations Strategy & Quality Audit Lead</p>' +
+            '<p> Specializing in Data Pipelines, Process Modernization, and Executive Customer Experience.</p>' +
+            '<p>Implementing artificial intelligence solutions for industry leading companies since pre-chatgpt 🤖</p>' +
+            '<p>Here to move your organization into the future!</p>'
     }
 ];
 
@@ -203,8 +206,11 @@ window.addEventListener('resize', () => {
 function animate() {
     requestAnimationFrame(animate);
 
+    // Move time declaration up so it can be used by all updates
+    const time = performance.now();
+
     // Update Planets First (so we track their latest state)
-    planets.forEach(p => p.update());
+    planets.forEach(p => p.update(time));
 
     // Update Spaceship
     spaceship.update();
@@ -216,7 +222,6 @@ function animate() {
     // Update Entities
     asteroids.forEach(a => a.update());
 
-    const time = performance.now();
     ufos.forEach(u => u.update(time));
 
     // Update Explosions
@@ -389,7 +394,7 @@ function animate() {
         // Handle UI and Interaction
         if (landingCandidate) {
             if (prompt) {
-                prompt.innerText = `PRESS SPACE TO LAND ON ${landingCandidate.config.name.toUpperCase()}`;
+                prompt.innerText = `PRESS SPACE TO LAND ON '${landingCandidate.config.name.toUpperCase()}'`;
                 prompt.classList.add('visible');
             }
 
